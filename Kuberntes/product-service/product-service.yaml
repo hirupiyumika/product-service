@@ -1,0 +1,44 @@
+# ... Deployment YAML definition
+apiVersion: apps/v1                                          # API version
+kind: Deployment                                             # Type of kubernetes resource
+metadata:
+  name: product-backend-deploy                        # Name of the kubernetes resource
+  labels:                                                    # Labels that will be applied to this resource
+    app: product-appserver
+spec:
+  replicas: 1                                                # No. of replicas/pods to run in this deployment
+  selector:
+    matchLabels:                                             # The deployment applies to any pods mayching the specified labels
+      app: product-appserver
+    
+  template:                                                  # Template for creating the pods in this deployment
+    metadata:
+      name: product-backend-pod
+      labels:                                                # Labels that will be applied to each Pod in this deployment
+        app: product-appserver
+    spec:                                                    # Spec for the containers that will be run in the Pods
+      containers:
+        - name: product-backend
+          image: hiru369/product-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080                            # The port that the container exposes
+          env:                                               # Environment variables supplied to the Pod
+            - name: MONGO_URL
+              value: mongodb://ctse:ctse123@cluster0-shard-00-00.9ombt.mongodb.net:27017,cluster0-shard-00-01.9ombt.mongodb.net:27017,cluster0-shard-00-02.9ombt.mongodb.net:27017/?ssl=true&replicaSet=atlas-euq2pr-shard-0&authSource=admin&retryWrites=true&w=majority
+---
+# ... Service YAML definition
+apiVersion: v1                                               # API version
+kind: Service                                                # Type of the kubernetes resource
+metadata:
+  name: product-backend-service                       # Name of the kubernetes resource
+  labels:                                                    # Labels that will be applied to this resource
+    app: product-appserver
+spec:
+  type: LoadBalancer                                         # The service will be exposed by opening a Port on each node and proxying it. 
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:                                                  # The service exposes Pods with label `app=product-appserver`
+    app: product-appserver
+

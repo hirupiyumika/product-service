@@ -1,0 +1,43 @@
+# ... Deployment YAML definition
+apiVersion: apps/v1                                          # API version
+kind: Deployment                                             # Type of kubernetes resource
+metadata:
+  name: shopping-list-backend-deploy                        # Name of the kubernetes resource
+  labels:                                                    # Labels that will be applied to this resource
+    app: shopping-list-appserver
+spec:
+  replicas: 1                                                # No. of replicas/pods to run in this deployment
+  selector:
+    matchLabels:                                             # The deployment applies to any pods mayching the specified labels
+      app: shopping-list-appserver
+    
+  template:                                                  # Template for creating the pods in this deployment
+    metadata:
+      name: shopping-list-backend-pod
+      labels:                                                # Labels that will be applied to each Pod in this deployment
+        app: shopping-list-appserver
+    spec:                                                    # Spec for the containers that will be run in the Pods
+      containers:
+        - name: shopping-list-backend
+          image: kavndu/shopping-list-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080                            # The port that the container exposes
+          env:                                               # Environment variables supplied to the Pod
+            # - name: MONGO_URL
+            #   value: mongodb://mongo:27017/shopping-list
+---
+# ... Service YAML definition
+apiVersion: v1                                               # API version
+kind: Service                                                # Type of the kubernetes resource
+metadata:
+  name: shopping-list-backend-service                       # Name of the kubernetes resource
+  labels:                                                    # Labels that will be applied to this resource
+    app: shopping-list-appserver
+spec:
+  type: LoadBalancer                                             # The service will be exposed by opening a Port on each node and proxying it. 
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:                                                  # The service exposes Pods with label `app=shopping-list-appserver`
+    app: shopping-list-appserver
